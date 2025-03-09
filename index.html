@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CPB Books</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #8a4af3;
+            --dark-bg: #1a1a1a;
+            --text-light: #ffffff;
+            --shadow: rgba(138, 74, 243, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--dark-bg);
+            color: var(--text-light);
+            font-family: 'Segoe UI', Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: linear-gradient(135deg, #2a2a2a, #1f1f1f);
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px var(--shadow);
+            width: 100%;
+            max-width: 600px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 1.5rem;
+            color: var(--primary-color);
+            text-shadow: 0 2px 4px var(--shadow);
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: #333;
+            color: var(--text-light);
+            font-size: 1rem;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            box-shadow: 0 0 5px var(--primary-color);
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: var(--text-light);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #6d38c2;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px var(--shadow);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        #progresso {
+            margin-top: 1rem;
+            text-align: center;
+            font-size: 0.9rem;
+            color: #cccccc;
+            white-space: pre-wrap;
+        }
+
+        /* Estilos adicionados para o footer */
+        footer {
+            margin-top: 20px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+        }
+
+        footer a {
+            display: block;
+            text-align: center;
+        }
+
+        footer img {
+            max-width: 180%;
+            height: auto;
+            width: 180px; /* Tamanho base ajustável */
+        }
+
+        @media (max-width: 600px) {
+            footer img {
+                width: 80px; /* Reduz o tamanho em telas menores */
+            }
+        }
+
+        @media (max-width: 400px) {
+            footer img {
+                width: 60px; /* Ainda menor em telas muito pequenas */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>CPB Books - hAcK</h1>
+        <div class="input-group">
+            <label for="baseUrl">put their link down here pal !!:</label>
+            <input type="text" id="baseUrl" placeholder="Ex.: https://s.cpbedu.me/livro-digital/cpb/4587_2ano_prof/files/page/">
+        </div>
+        <div class="button-container">
+            <button id="corsBtn">Lembre-se do CORS</button>
+            <button id="baixarLoteBtn">Get the Book!</button>
+            <button id="cancelarBtn" disabled>Cencel it!</button>
+        </div>
+        <div id="progresso"></div>
+    </div>
+
+    <script>
+        const MAX_TENTATIVAS = 999; // Evita o loop infinito
+        let cancelarDownload = false;
+
+        // Botão para solicitar ao CORS
+        document.getElementById('corsBtn').addEventListener('click', () => {
+            window.open('https://cors-anywhere.herokuapp.com/corsdemo', '_blank');
+        });
+
+        async function baixarImagem(url, nome, progressoElement) {
+            try {
+                const proxyUrl = `https://cors-anywhere.herokuapp.com/${url}`;
+                const resposta = await fetch(proxyUrl, {
+                    headers: {
+                        'Accept': 'image/jpeg'
+                    }
+                });
+                if (!resposta.ok) {
+                    if (resposta.status === 404) {
+                        return 'nao_encontrado'; // Pra poder parar de fazer o download...
+                    }
+                    throw new Error(`Erro HTTP ${resposta.status}`);
+                }
+                const blob = await resposta.blob();
+                if (blob.size === 0) {
+                    throw new Error('Arquivo vazio');
+                }
+                saveAs(blob, nome);
+                return true;
+            } catch (error) {
+                console.error(`Erro ao baixar ${nome}:`, error.message);
+                progressoElement.textContent += `\nFalha ao baixar ${nome}`;
+                return false;
+            }
+        }
+
+        async function baixarImagensEmLote() {
+            const botaoBaixar = document.getElementById('baixarLoteBtn');
+            const botaoCancelar = document.getElementById('cancelarBtn');
+            const progressoElement = document.getElementById('progresso');
+            const baseUrl = document.getElementById('baseUrl').value.trim();
+
+            if (!baseUrl) {
+                progressoElement.textContent = 'Ta errado esse link bro, ve direito issae...';
+                return;
+            }
+
+            botaoBaixar.disabled = true;
+            botaoCancelar.disabled = false;
+            cancelarDownload = false;
+            progressoElement.textContent = 'Iniciando download...';
+
+            let sucessos = 0;
+            let i = 1;
+
+            while (i <= MAX_TENTATIVAS) {
+                if (cancelarDownload) {
+                    progressoElement.textContent = 'Download cancelado pelo usuário';
+                    break;
+                }
+
+                const url = `${baseUrl}${i}.jpg`;
+                const nome = `imagem_${String(i).padStart(3, '0')}.jpg`;
+                
+                progressoElement.textContent = `Baixando página ${i}...`;
+                
+                const resultado = await baixarImagem(url, nome, progressoElement);
+                
+                if (resultado === 'nao_encontrado') {
+                    progressoElement.textContent = `Download concluído! ${sucessos} imagens baixadas com sucesso.`;
+                    break;
+                } else if (resultado) {
+                    sucessos++;
+                }
+
+                i++;
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+
+            if (i > MAX_TENTATIVAS) {
+                progressoElement.textContent = `Download concluído! ${sucessos} imagens baixadas (limite máximo atingido).`;
+            }
+
+            botaoBaixar.disabled = false;
+            botaoCancelar.disabled = true;
+        }
+
+        // Eventos dos botões
+        document.getElementById('baixarLoteBtn').addEventListener('click', baixarImagensEmLote);
+        document.getElementById('cancelarBtn').addEventListener('click', () => {
+            cancelarDownload = true;
+        });
+    </script>
+    <footer id="footer"> <a href="https://instagram.com/brunopatriots" id="mylink" target="_blank"> <img src="reset.gif"> </a> </footer>
+</body>
+</html>

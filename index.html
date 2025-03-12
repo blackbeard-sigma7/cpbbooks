@@ -126,7 +126,7 @@
         }
 
         footer img {
-            width: 180px; /* Tamanho fixo base */
+            width: 180px;
             height: auto;
         }
 
@@ -148,7 +148,7 @@
         <h1>CPB Books - hAcK</h1>
         <div class="input-group">
             <label for="baseUrl">put their link down here pal !!:</label>
-            <input type="text" id="baseUrl" placeholder="Ex.: https://s.cpbedu.me/livro-digital/cpb/4587_2ano_prof/files/page/" value="https://s.cpbedu.me/livro-digital/cpb/4587_2ano_prof/files/page/">
+            <input type="text" id="baseUrl" placeholder="Ex.: https://s.cpbedu.me/livro-digital/cpb/5_prof/files/page/" value="https://s.cpbedu.me/livro-digital/cpb/5_prof/files/page/">
         </div>
         <div class="button-container">
             <button id="corsBtn">Lembre-se do CORS</button>
@@ -176,7 +176,7 @@
                 const proxyUrl = `https://cors-anywhere.herokuapp.com/${url}`;
                 const resposta = await fetch(proxyUrl, {
                     headers: {
-                        'Accept': 'image/jpeg'
+                        'Accept': 'image/png' // Alterado pra PNG
                     }
                 });
                 if (!resposta.ok) {
@@ -204,7 +204,8 @@
             const progressoElement = document.getElementById('progresso');
             let baseUrl = document.getElementById('baseUrl').value.trim();
 
-            // Garante que o URL termina com "/"
+            // Remove query string e garante que termina com "/"
+            baseUrl = baseUrl.split('?')[0];
             if (!baseUrl.endsWith('/')) {
                 baseUrl += '/';
             }
@@ -228,8 +229,8 @@
                     break;
                 }
 
-                const url = `${baseUrl}${i}.jpg`;
-                const nome = `imagem_${String(i).padStart(3, '0')}.jpg`;
+                const url = `${baseUrl}${i}.png`; // Alterado pra PNG
+                const nome = `imagem_${String(i).padStart(3, '0')}.png`;
                 
                 progressoElement.textContent = `Baixando página ${i}...`;
                 

@@ -176,14 +176,14 @@
                 const proxyUrl = `https://cors-anywhere.herokuapp.com/${url}`;
                 const resposta = await fetch(proxyUrl, {
                     headers: {
-                        'Accept': 'image/png' // Alterado pra PNG
+                        'Accept': 'image/png'
                     }
                 });
                 if (!resposta.ok) {
                     if (resposta.status === 404) {
                         return 'nao_encontrado';
                     }
-                    throw new Error(`Erro HTTP ${resposta.status}`);
+                    throw new Error(`Erro HTTP ${resposta.status} - ${resposta.statusText}`);
                 }
                 const blob = await resposta.blob();
                 if (blob.size === 0) {
@@ -193,7 +193,7 @@
                 return true;
             } catch (error) {
                 console.error(`Erro ao baixar ${nome}:`, error.message);
-                progressoElement.textContent += `\nFalha ao baixar ${nome}`;
+                progressoElement.textContent += `\nFalha ao baixar ${nome}: ${error.message}`;
                 return false;
             }
         }
@@ -229,7 +229,7 @@
                     break;
                 }
 
-                const url = `${baseUrl}${i}.png`; // Alterado pra PNG
+                const url = `${baseUrl}${i}.png`;
                 const nome = `imagem_${String(i).padStart(3, '0')}.png`;
                 
                 progressoElement.textContent = `Baixando página ${i}...`;
@@ -244,7 +244,8 @@
                 }
 
                 i++;
-                await new Promise(resolve => setTimeout(resolve, 500));
+                // Aumenta o atraso pra evitar rate limiting
+                await new Promise(resolve => setTimeout(resolve, 1000)); // 1 segundo
             }
 
             if (i > MAX_TENTATIVAS) {

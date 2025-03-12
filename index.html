@@ -155,7 +155,7 @@
             <button id="baixarLoteBtn">Get the Book!</button>
             <button id="cancelarBtn" disabled>Cencel it!</button>
         </div>
-        <div id="progresso"></div>
+        <div id="progresso">Aviso: Permita downloads múltiplos no navegador se solicitado!</div>
     </div>
     <footer id="footer">
         <a href="https://instagram.com/brunopatriots" id="mylink" target="_blank">
@@ -204,7 +204,6 @@
             const progressoElement = document.getElementById('progresso');
             let baseUrl = document.getElementById('baseUrl').value.trim();
 
-            // Remove query string e garante que termina com "/"
             baseUrl = baseUrl.split('?')[0];
             if (!baseUrl.endsWith('/')) {
                 baseUrl += '/';
@@ -244,8 +243,7 @@
                 }
 
                 i++;
-                // Aumenta o atraso pra evitar rate limiting
-                await new Promise(resolve => setTimeout(resolve, 1000)); // 1 segundo
+                await new Promise(resolve => setTimeout(resolve, 2000)); // 2 segundos
             }
 
             if (i > MAX_TENTATIVAS) {
